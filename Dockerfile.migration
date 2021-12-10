@@ -1,0 +1,13 @@
+FROM rust:1.53
+
+ARG DATABASE_URL
+
+ENV DATABASE_URL $DATABASE_URL
+ENV RUST_BACKTRACE=1
+
+RUN cargo install diesel_cli --no-default-features --features mysql
+
+COPY ./migrations ./migrations
+COPY ./scripts ./scripts
+
+ENTRYPOINT ./scripts/migration_run.sh

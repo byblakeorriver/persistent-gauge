@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+
+  mariadb:
+    build:
+      context: ./data
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+    ports:
+      - '3306:3306'
+
+  gauge:
+    build:
+      context: .
+    environment:
+      LOG_LEVEL: "debug"
+    ports:
+      - '80:80'
