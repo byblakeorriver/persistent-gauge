@@ -4,13 +4,14 @@ use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::{insert_into, update};
 
+pub fn find_all_gauges(connection: &MysqlConnection) -> Result<Vec<Gauge>, Error> {
+  use crate::schema::gauge;
+  gauge::table.load::<Gauge>(connection)
+}
+
 pub fn find_gauge_by_name(name: String, connection: &MysqlConnection) -> Result<Gauge, Error> {
   use crate::schema::gauge;
-
-  match gauge::table.find(name).get_result::<Gauge>(connection) {
-    Ok(gauge) => Ok(gauge),
-    Err(e) => Err(e),
-  }
+  gauge::table.find(name).get_result::<Gauge>(connection)
 }
 
 pub fn add_new_gauge(

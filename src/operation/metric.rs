@@ -1,5 +1,5 @@
 use axum::http::StatusCode;
-use opentelemetry::global;
+use opentelemetry::{global, KeyValue};
 use opentelemetry::metrics::{Meter, UpDownCounter};
 use opentelemetry_prometheus::{exporter, PrometheusExporter};
 
@@ -8,7 +8,9 @@ use prometheus::{Encoder, TextEncoder};
 
 use axum::extract::Extension;
 use axum::response::IntoResponse;
+use diesel::MysqlConnection;
 use log::error;
+use crate::action::find_all_gauges;
 
 #[derive(Clone)]
 pub struct Metric {
@@ -19,7 +21,7 @@ pub struct Metric {
 impl Metric {
   pub fn init() -> Self {
     let prometheus_exporter: PrometheusExporter = exporter().init();
-    let meter: Meter = global::meter("rt_chart_migration");
+    let meter: Meter = global::meter("persistent_gauge");
 
     let issue_gauge: UpDownCounter<i64> = meter
       .i64_up_down_counter("issue.gauge")
@@ -29,6 +31,19 @@ impl Metric {
     Self {
       prometheus_exporter,
       issue_gauge,
+    }
+  }
+
+  pub fn report_initial_metrics(&self, connection: &MysqlConnection) {
+    match find_all_gauges(connection) {
+      Ok(gauges) => {
+        gauges.iter().for_each(|g| {
+          self
+            .issue_gauge
+            .add(g.value, &[KeyValue::new("issue-type", g.name.clone())]);
+        })
+      }
+      Err(e) => panic!("Could not report initial metrics: {:?}", e),
     }
   }
 }

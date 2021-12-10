@@ -35,6 +35,8 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     ConnectionManager::<MysqlConnection>::new(conf.database_url());
   let pool: DbPool = Pool::new(database_manager).expect("Failed to create pool!");
 
+  metric.report_initial_metrics(&pool.get().expect("Failed to report initial metrics!"));
+
   let app = Router::new()
     .route("/metrics", get(metric_service))
     .route("/status", get(status))
