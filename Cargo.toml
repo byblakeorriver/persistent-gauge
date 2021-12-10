@@ -1,7 +1,7 @@
 [package]
 name = "persistent-gauge"
 version = "0.1.0"
-authors = ["team_prison_mike"]
+authors = ["byblakeorriver"]
 edition = "2018"
 
 [dependencies]
