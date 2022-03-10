@@ -1,9 +1,9 @@
+use axum::http::StatusCode;
 use axum::{
   body,
   response::{IntoResponse, Response},
 };
 use log::debug;
-use reqwest::StatusCode;
 
 type Name = String;
 
