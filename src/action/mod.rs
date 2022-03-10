@@ -1,3 +1,3 @@
 mod gauge;
 
-pub use gauge::*;
+pub(crate) use gauge::*;

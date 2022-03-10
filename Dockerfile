@@ -1,4 +1,4 @@
-FROM lukemathwalker/cargo-chef:latest-rust-1.53.0 as chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.59.0 as chef
 WORKDIR app
 
 FROM chef as planner
@@ -15,12 +15,12 @@ RUN cargo chef cook --release --recipe-path recipe.json
 # Build application
 COPY ./Cargo.toml ./Cargo.lock ./
 COPY ./src ./src
-RUN rustup component add rustfmt --toolchain 1.53.0-x86_64-unknown-linux-gnu && \
+RUN rustup component add rustfmt --toolchain 1.59.0-x86_64-unknown-linux-gnu && \
     cargo install --force cargo-strip && \
     cargo build --release && \
     cargo strip
 
-FROM debian:buster-slim as runtime
+FROM debian:bullseye-slim as runtime
 WORKDIR app
 
 RUN apt update && \

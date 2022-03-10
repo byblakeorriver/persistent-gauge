@@ -15,7 +15,7 @@ pub(crate) async fn decrement_gauge(
     Ok(gauge) => match update_gauge_value(&gauge_name, gauge.value - 1, &connection) {
       Ok(v) => {
         metric
-          .issue_gauge
+          .persistent_gauge
           .add(-1, &[KeyValue::new("issue-type", gauge_name)]);
         Ok(GaugeResponse::Decremented(v))
       }

@@ -15,7 +15,7 @@ use log::error;
 #[derive(Clone)]
 pub struct Metric {
   pub(crate) prometheus_exporter: PrometheusExporter,
-  pub(crate) issue_gauge: UpDownCounter<i64>,
+  pub(crate) persistent_gauge: UpDownCounter<i64>,
 }
 
 impl Metric {
@@ -23,14 +23,14 @@ impl Metric {
     let prometheus_exporter: PrometheusExporter = exporter().init();
     let meter: Meter = global::meter("persistent_gauge");
 
-    let issue_gauge: UpDownCounter<i64> = meter
-      .i64_up_down_counter("issue.gauge")
-      .with_description("Number of issues by issue type.")
+    let persistent_gauge: UpDownCounter<i64> = meter
+      .i64_up_down_counter("persistent.gauge")
+      .with_description("Persistent gauge per name.")
       .init();
 
     Self {
       prometheus_exporter,
-      issue_gauge,
+      persistent_gauge,
     }
   }
 
@@ -38,8 +38,8 @@ impl Metric {
     match find_all_gauges(connection) {
       Ok(gauges) => gauges.iter().for_each(|g| {
         self
-          .issue_gauge
-          .add(g.value, &[KeyValue::new("issue-type", g.name.clone())]);
+          .persistent_gauge
+          .add(g.value, &[KeyValue::new("name", g.name.clone())]);
       }),
       Err(e) => panic!("Could not report initial metrics: {:?}", e),
     }

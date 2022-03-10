@@ -20,7 +20,7 @@ pub(crate) async fn create_gauge(
       Error::NotFound => match add_new_gauge(gauge_name, &connection) {
         Ok(gauge_name) => {
           metric
-            .issue_gauge
+            .persistent_gauge
             .add(0, &[KeyValue::new("issue-type", gauge_name.clone())]);
           Ok(GaugeResponse::Created(gauge_name))
         }

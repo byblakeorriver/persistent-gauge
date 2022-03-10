@@ -10,10 +10,23 @@ services:
     ports:
       - '3306:3306'
 
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile.migration
+      args:
+        DATABASE_URL: mysql://myuser:mypassword@mariadb:3306/gauge@gauge
+    depends_on:
+      - mariadb
+
   gauge:
     build:
       context: .
     environment:
       LOG_LEVEL: "debug"
+    depends_on:
+      - mariadb
+      - migration
+    restart: on-failure
     ports:
       - '80:80'

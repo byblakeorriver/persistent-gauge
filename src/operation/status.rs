@@ -4,6 +4,7 @@ use axum::{
   response::{IntoResponse, Response},
 };
 
+#[allow(dead_code)]
 pub(crate) enum Status {
   Serving,
   NotServing,

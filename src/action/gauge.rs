@@ -14,7 +14,10 @@ pub(crate) fn find_gauge_by_name(name: &str, connection: &MysqlConnection) -> Re
   gauge::table.find(name).get_result::<Gauge>(connection)
 }
 
-pub fn add_new_gauge(gauge_name: String, connection: &MysqlConnection) -> Result<String, Error> {
+pub(crate) fn add_new_gauge(
+  gauge_name: String,
+  connection: &MysqlConnection,
+) -> Result<String, Error> {
   use crate::schema::gauge::dsl::*;
 
   insert_into(gauge)
@@ -27,7 +30,7 @@ pub fn add_new_gauge(gauge_name: String, connection: &MysqlConnection) -> Result
   Ok(gauge_name)
 }
 
-pub fn update_gauge_value(
+pub(crate) fn update_gauge_value(
   update_gauge_name: &str,
   gauge_value: i64,
   connection: &MysqlConnection,

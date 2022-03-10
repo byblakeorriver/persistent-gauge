@@ -2,7 +2,7 @@
 name = "persistent-gauge"
 version = "0.1.0"
 authors = ["byblakeorriver"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 # diesel ORM
