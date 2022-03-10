@@ -1,41 +1,26 @@
 use crate::action::{find_gauge_by_name, update_gauge_value};
-use crate::model::GaugeUpdate;
+use crate::model::{GaugeError, GaugeResponse};
 use crate::{DbPool, Metric};
 use axum::extract::{Extension, Path};
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use log::{debug, error};
 use opentelemetry::KeyValue;
 
-pub async fn decrement_gauge(
+pub(crate) async fn decrement_gauge(
   Path(gauge_name): Path<String>,
   Extension(metric): Extension<Metric>,
   Extension(pool): Extension<DbPool>,
-) -> impl IntoResponse {
-  let connection = pool
-    .get()
-    .expect("Couldn't get database connection from pool!");
+) -> Result<GaugeResponse, GaugeError> {
+  let connection = pool.get()?;
 
-  match find_gauge_by_name(gauge_name.clone(), &connection) {
-    Ok(gauge) => {
-      debug!("Decrementing gauge: {:?}", gauge_name);
-      let gauge_update = GaugeUpdate {
-        value: Some(gauge.value - 1),
-      };
-      match update_gauge_value(gauge_name.clone(), gauge_update, &connection) {
-        Ok(Some(GaugeUpdate { value: Some(v) })) => {
-          metric
-            .issue_gauge
-            .add(-1, &[KeyValue::new("issue-type", gauge_name)]);
-          (StatusCode::OK, v.to_string())
-        }
-        _ => {
-          let error = format!("Failed to decrement gauge: {:?}", gauge_name);
-          error!("{}", error);
-          (StatusCode::INTERNAL_SERVER_ERROR, error)
-        }
+  match find_gauge_by_name(&gauge_name, &connection) {
+    Ok(gauge) => match update_gauge_value(&gauge_name, gauge.value - 1, &connection) {
+      Ok(v) => {
+        metric
+          .issue_gauge
+          .add(-1, &[KeyValue::new("issue-type", gauge_name)]);
+        Ok(GaugeResponse::Decremented(v))
       }
-    }
-    Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+      Err(e) => Err(GaugeError::FailedToDecrement(e.to_string())),
+    },
+    Err(e) => Err(GaugeError::NotFound(e.to_string())),
   }
 }

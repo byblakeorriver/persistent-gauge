@@ -12,7 +12,7 @@ pub struct Logger {
 }
 
 impl Logger {
-  pub fn init_logger(config: &Config) -> Self {
+  pub fn init_logger() -> Self {
     let json: Fuse<Json<Stdout>> = Json::new(std::io::stdout())
       .add_default_keys()
       .build()
@@ -23,7 +23,7 @@ impl Logger {
     let root_logger: SLogger = SLogger::root(drain, o!("application_name" => "persistent-gauge"));
 
     // unwrap ok, because I want the application to panic if the logging cannot be initiated
-    slog_stdlog::init_with_level(config.get_log_level()).unwrap();
+    slog_stdlog::init_with_level(Config::get_log_level()).unwrap();
 
     Self { root_logger }
   }

@@ -4,48 +4,42 @@ use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::{insert_into, update};
 
-pub fn find_all_gauges(connection: &MysqlConnection) -> Result<Vec<Gauge>, Error> {
+pub(crate) fn find_all_gauges(connection: &MysqlConnection) -> Result<Vec<Gauge>, Error> {
   use crate::schema::gauge;
   gauge::table.load::<Gauge>(connection)
 }
 
-pub fn find_gauge_by_name(name: String, connection: &MysqlConnection) -> Result<Gauge, Error> {
+pub(crate) fn find_gauge_by_name(name: &str, connection: &MysqlConnection) -> Result<Gauge, Error> {
   use crate::schema::gauge;
   gauge::table.find(name).get_result::<Gauge>(connection)
 }
 
-pub fn add_new_gauge(
-  new_gauge: NewGauge,
-  connection: &MysqlConnection,
-) -> Result<Option<NewGauge>, Error> {
+pub fn add_new_gauge(gauge_name: String, connection: &MysqlConnection) -> Result<String, Error> {
   use crate::schema::gauge::dsl::*;
 
-  let ng: NewGauge = new_gauge.clone();
+  insert_into(gauge)
+    .values(vec![NewGauge {
+      name: gauge_name.clone(),
+      value: 0,
+    }])
+    .execute(connection)?;
 
-  let inserted_gauge: usize = insert_into(gauge).values(vec![ng]).execute(connection)?;
-
-  if inserted_gauge == 1 {
-    Ok(Some(new_gauge))
-  } else {
-    Ok(None)
-  }
+  Ok(gauge_name)
 }
 
 pub fn update_gauge_value(
-  update_gauge_name: String,
-  gauge_update: GaugeUpdate,
+  update_gauge_name: &str,
+  gauge_value: i64,
   connection: &MysqlConnection,
-) -> Result<Option<GaugeUpdate>, Error> {
+) -> Result<i64, Error> {
   use crate::schema::gauge::dsl::*;
 
   let target = gauge.filter(name.eq(update_gauge_name));
-  let updated_gauge: usize = update(target)
-    .set(gauge_update.clone())
+  update(target)
+    .set(GaugeUpdate {
+      value: Some(gauge_value),
+    })
     .execute(connection)?;
 
-  if updated_gauge == 1 {
-    Ok(Some(gauge_update))
-  } else {
-    Ok(None)
-  }
+  Ok(gauge_value)
 }

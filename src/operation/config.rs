@@ -1,5 +1,10 @@
+use lazy_static::lazy_static;
 use log::Level;
 use serde::Deserialize;
+
+lazy_static! {
+  static ref CONFIG: Config = Config::load_config();
+}
 
 fn default_operation_port() -> u16 {
   80u16
@@ -21,22 +26,29 @@ fn default_database_address() -> String {
   "mariadb:3306".into()
 }
 
+fn default_database_name() -> String {
+  "gauge@gauge".into()
+}
+
 #[derive(Deserialize, Debug, Clone)]
 pub struct Config {
   #[serde(default = "default_operation_port")]
-  pub operation_port: u16,
+  operation_port: u16,
 
   #[serde(default = "default_log_level")]
-  pub log_level: String,
+  log_level: String,
 
   #[serde(default = "default_gauge_data_user")]
-  pub gauge_data_user: String,
+  gauge_data_user: String,
 
   #[serde(default = "default_gauge_data_password")]
-  pub gauge_data_password: String,
+  gauge_data_password: String,
 
   #[serde(default = "default_database_address")]
-  pub database_address: String,
+  database_address: String,
+
+  #[serde(default = "default_database_name")]
+  database_name: String,
 }
 
 impl Config {
@@ -49,8 +61,8 @@ impl Config {
     }
   }
 
-  pub fn get_log_level(&self) -> Level {
-    match self.log_level.clone().as_str() {
+  pub fn get_log_level() -> Level {
+    match CONFIG.log_level.as_str() {
       "trace" => Level::Trace,
       "debug" => Level::Debug,
       "warn" => Level::Warn,
@@ -59,10 +71,17 @@ impl Config {
     }
   }
 
-  pub fn database_url(&self) -> String {
+  pub fn database_url() -> String {
     format!(
-      "mysql://{}:{}@{}/gauge@gauge",
-      self.gauge_data_user, self.gauge_data_password, self.database_address
+      "mysql://{}:{}@{}/{}",
+      CONFIG.gauge_data_user,
+      CONFIG.gauge_data_password,
+      CONFIG.database_address,
+      CONFIG.database_name,
     )
+  }
+
+  pub fn operation_port() -> u16 {
+    CONFIG.operation_port
   }
 }
