@@ -7,12 +7,12 @@ use slog_async::Async;
 use slog_json::Json;
 
 #[derive(Clone)]
-pub struct Logger {
+pub(crate) struct Logger {
   pub root_logger: SLogger,
 }
 
 impl Logger {
-  pub fn init_logger() -> Self {
+  pub(crate) fn init_logger() -> Self {
     let json: Fuse<Json<Stdout>> = Json::new(std::io::stdout())
       .add_default_keys()
       .build()

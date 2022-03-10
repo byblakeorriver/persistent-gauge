@@ -31,7 +31,7 @@ fn default_database_name() -> String {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-pub struct Config {
+pub(crate) struct Config {
   #[serde(default = "default_operation_port")]
   operation_port: u16,
 

@@ -13,13 +13,13 @@ use diesel::MysqlConnection;
 use log::error;
 
 #[derive(Clone)]
-pub struct Metric {
+pub(crate) struct Metric {
   pub(crate) prometheus_exporter: PrometheusExporter,
   pub(crate) persistent_gauge: UpDownCounter<i64>,
 }
 
 impl Metric {
-  pub fn init() -> Self {
+  pub(crate) fn init() -> Self {
     let prometheus_exporter: PrometheusExporter = exporter().init();
     let meter: Meter = global::meter("persistent_gauge");
 
@@ -34,7 +34,19 @@ impl Metric {
     }
   }
 
-  pub fn report_initial_metrics(&self, connection: &MysqlConnection) {
+  pub(crate) fn increment_gauge(&self, name: &str) {
+    self
+      .persistent_gauge
+      .add(1, &[KeyValue::new("name", name.to_string())]);
+  }
+
+  pub(crate) fn decrement_gauge(&self, name: &str) {
+    self
+      .persistent_gauge
+      .add(-1, &[KeyValue::new("name", name.to_string())]);
+  }
+
+  pub(crate) fn report_initial_metrics(&self, connection: &MysqlConnection) {
     match find_all_gauges(connection) {
       Ok(gauges) => gauges.iter().for_each(|g| {
         self
@@ -46,7 +58,7 @@ impl Metric {
   }
 }
 
-pub async fn metric_service(Extension(metric): Extension<Metric>) -> impl IntoResponse {
+pub(crate) async fn metric_service(Extension(metric): Extension<Metric>) -> impl IntoResponse {
   let encoder: TextEncoder = TextEncoder::new();
   let mut buffer: Vec<u8> = Vec::new();
   let metric_family: Vec<MetricFamily> = metric.prometheus_exporter.registry().gather();

@@ -1,5 +1,5 @@
 use crate::operation::{metric_service, status, Config, Logger, Metric};
-use axum::routing::{get, post};
+use axum::routing::{get, post, put};
 use axum::{Router, Server};
 use std::error::Error;
 
@@ -34,15 +34,16 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
 
   let database_manager: ConnectionManager<MysqlConnection> =
     ConnectionManager::<MysqlConnection>::new(Config::database_url());
-  let pool: DbPool = Pool::new(database_manager).expect("Failed to create pool!");
+  let pool: DbPool = Pool::new(database_manager)?;
 
-  metric.report_initial_metrics(&pool.get().expect("Failed to report initial metrics!"));
+  let connection = pool.get()?;
+  metric.report_initial_metrics(&connection);
 
   let app = Router::new()
     .route("/metrics", get(metric_service))
     .route("/status", get(status))
-    .route("/api/gauge/increment/:gauge_name", post(increment_gauge))
-    .route("/api/gauge/decrement/:gauge_name", post(decrement_gauge))
+    .route("/api/gauge/increment/:gauge_name", put(increment_gauge))
+    .route("/api/gauge/decrement/:gauge_name", put(decrement_gauge))
     .route("/api/gauge/create/:gauge_name", post(create_gauge))
     .layer(Extension(pool.clone()))
     .layer(Extension(metric.clone()));
