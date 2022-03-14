@@ -42,6 +42,7 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
   let app = Router::new()
     .route("/metrics", get(metric_service))
     .route("/status", get(status))
+    .route("/api/gauge/gauges", get(get_gauges))
     .route("/api/gauge/increment/:gauge_name", put(increment_gauge))
     .route("/api/gauge/decrement/:gauge_name", put(decrement_gauge))
     .route("/api/gauge/create/:gauge_name", post(create_gauge))
