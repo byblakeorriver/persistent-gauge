@@ -1,11 +1,10 @@
 use crate::action::find_all_gauges;
 use crate::model::{GaugeError, GaugeResponse};
-use crate::{DbPool, Metric};
+use crate::DbPool;
 use axum::extract::Extension;
 use axum::Json;
 
 pub(crate) async fn get_gauges(
-  Extension(_metric): Extension<Metric>,
   Extension(pool): Extension<DbPool>,
 ) -> Result<Json<GaugeResponse>, GaugeError> {
   let connection = pool.get()?;

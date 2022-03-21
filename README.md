@@ -8,6 +8,11 @@ To run this service run `docker-compose up`.
 curl -X POST 0.0.0.0:80/api/gauge/create/clams
 ```
 
+## Get Gauges
+```bash
+curl -X GET 0.0.0.0:80/api/gauge/gauges
+```
+
 ## Increment Gauge
 ```bash
 curl -X PUT 0.0.0.0:80/api/gauge/increment/clams

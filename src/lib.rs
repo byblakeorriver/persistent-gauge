@@ -1,4 +1,4 @@
-use crate::operation::{metric_service, status, Config, Logger, Metric};
+use crate::operation::{metric_service, status, track_metrics, Config, Logger, Metric};
 use axum::routing::{get, post, put};
 use axum::{Router, Server};
 use std::error::Error;
@@ -6,6 +6,7 @@ use std::error::Error;
 use handler::*;
 
 use axum::extract::Extension;
+use axum::middleware::from_fn;
 use diesel::r2d2::ConnectionManager;
 use diesel::MysqlConnection;
 use log::info;
@@ -28,7 +29,6 @@ type DbPool = Pool<ConnectionManager<MysqlConnection>>;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
   let logger: Logger = Logger::init_logger();
-  let metric: Metric = Metric::init();
 
   let _ = slog_scope::set_global_logger(logger.root_logger).cancel_reset();
 
@@ -37,7 +37,7 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
   let pool: DbPool = Pool::new(database_manager)?;
 
   let connection = pool.get()?;
-  metric.report_initial_metrics(&connection);
+  Metric::report_initial_metrics(&connection);
 
   let app = Router::new()
     .route("/metrics", get(metric_service))
@@ -46,8 +46,8 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     .route("/api/gauge/increment/:gauge_name", put(increment_gauge))
     .route("/api/gauge/decrement/:gauge_name", put(decrement_gauge))
     .route("/api/gauge/create/:gauge_name", post(create_gauge))
-    .layer(Extension(pool.clone()))
-    .layer(Extension(metric.clone()));
+    .route_layer(from_fn(track_metrics))
+    .layer(Extension(pool.clone()));
 
   let addr: SocketAddr = SocketAddr::from(([0, 0, 0, 0], Config::operation_port()));
   info!(

@@ -7,7 +7,6 @@ use diesel::result::Error;
 
 pub(crate) async fn create_gauge(
   Path(gauge_name): Path<String>,
-  Extension(metric): Extension<Metric>,
   Extension(pool): Extension<DbPool>,
 ) -> Result<Json<GaugeResponse>, GaugeError> {
   let connection = pool.get()?;
@@ -17,7 +16,7 @@ pub(crate) async fn create_gauge(
     Err(e) => match e {
       Error::NotFound => match add_new_gauge(gauge_name, &connection) {
         Ok(gauge_name) => {
-          metric.create_new_gauge_metric(&gauge_name);
+          Metric::create_new_gauge_metric(&gauge_name);
           Ok(Json(GaugeResponse::Created(gauge_name)))
         }
         Err(e) => Err(GaugeError::FailedToCreate(e.to_string())),
