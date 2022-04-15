@@ -1,0 +1,44 @@
+# Example of a test plan with 100 iterations and ~25 requests each.
+# A plan with 2500 requests in total at 5 iterations at the same time,
+# and a rampup of 2 seconds.
+
+---
+base: 'http://gauge:80'
+iterations: 10000
+concurrency: 5
+rampup: 2
+
+plan:
+  - name: Fetch gauges
+    request:
+      url: /api/gauge/gauges
+
+  - name: Create gauges
+    request:
+      url: /api/gauge/create/{{ item.name }}
+      method: POST
+    shuffle: true
+    with_items:
+      - { name: clams }
+      - { name: seahorses }
+      - { name: starfishes }
+
+  - name: Increment gauges
+    request:
+      url: /api/gauge/increment/{{ item.name }}
+      method: PUT
+    shuffle: true
+    with_items:
+      - { name: clams }
+      - { name: seahorses }
+      - { name: starfishes }
+
+  - name: Decrement gauges
+    request:
+      url: /api/gauge/decrement/{{ item.name }}
+      method: PUT
+    shuffle: true
+    with_items:
+      - { name: clams }
+      - { name: seahorses }
+      - { name: starfishes }

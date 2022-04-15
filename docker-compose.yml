@@ -20,6 +20,14 @@ services:
     depends_on:
       - mariadb
 
+  drill:
+    build:
+      context: .
+      dockerfile: Dockerfile.drill
+    restart: on-failure
+    depends_on:
+      - gauge
+
   gauge:
     build:
       context: .

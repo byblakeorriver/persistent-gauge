@@ -1,0 +1,11 @@
+FROM rust:1.59
+
+ENV RUST_BACKTRACE=1
+
+RUN cargo install drill && \
+    apt update && \
+    apt install -y libssl-dev ca-certificates pkg-config
+
+COPY ./benchmark ./benchmark
+
+ENTRYPOINT ./benchmark/drill.sh
