@@ -43,7 +43,9 @@ services:
     image: grafana/grafana:latest
     volumes:
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini
-      - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yaml
+      - ./grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+      - ./grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/dashboard.yaml
+      - ./grafana/dashboards/general:/etc/grafana/provisioning/dashboards/general
     ports:
       - "3000:3000"
     links:
