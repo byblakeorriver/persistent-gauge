@@ -5,6 +5,12 @@ authors = ["byblakeorriver"]
 edition = "2021"
 
 [dependencies]
+# axum web framework
+axum = "0.4.8"
+
+# tower
+tower = "0.4.12"
+
 # diesel ORM
 diesel = { version = "1.4.8", features = ["mysql", "r2d2", "chrono"] }
 
@@ -23,10 +29,11 @@ serde = { version = "1.0.136", features = ["derive"] }
 lazy_static = "1.4.0"
 
 #operational
-axum = "0.4.8"
 envy = "0.4.2"
-opentelemetry = { version = "0.17.0", features = ["metrics"] }
+opentelemetry = { version = "0.17.0", features = ["metrics", "rt-tokio"] }
 opentelemetry-prometheus = "0.10.0"
+opentelemetry-jaeger = { version = "0.16.0", features = ["rt-tokio"] }
+opentelemetry-http = "0.6.0"
 prometheus = "0.13.0"
 
 # logging

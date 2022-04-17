@@ -30,6 +30,14 @@ fn default_database_name() -> String {
   "gauge@gauge".into()
 }
 
+fn default_tracing_enabled() -> bool {
+  false
+}
+
+fn default_tracing_agent_address() -> String {
+  "jaeger:6831".into()
+}
+
 #[derive(Deserialize, Debug, Clone)]
 pub(crate) struct Config {
   #[serde(default = "default_operation_port")]
@@ -49,6 +57,12 @@ pub(crate) struct Config {
 
   #[serde(default = "default_database_name")]
   database_name: String,
+
+  #[serde(default = "default_tracing_enabled")]
+  tracing_enabled: bool,
+
+  #[serde(default = "default_tracing_agent_address")]
+  tracing_agent_address: String,
 }
 
 impl Config {
@@ -83,5 +97,13 @@ impl Config {
 
   pub fn operation_port() -> u16 {
     CONFIG.operation_port
+  }
+
+  pub fn tracing_enabled() -> bool {
+    CONFIG.tracing_enabled
+  }
+
+  pub fn tracing_agent_address() -> String {
+    CONFIG.tracing_agent_address.clone()
   }
 }

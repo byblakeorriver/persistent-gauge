@@ -31,6 +31,8 @@ const HTTP_REQUESTS_DURATION_SECONDS_DESCRIPTION: MetricLabel =
 
 lazy_static! {
   static ref METRIC: Metric = Metric::init();
+  static ref HISTOGRAM_BOUNDARIES: Vec<f64> =
+    vec![0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01];
 }
 
 #[derive(Clone)]
@@ -42,7 +44,10 @@ pub(crate) struct Metric {
 
 impl Metric {
   pub(crate) fn init() -> Self {
-    let prometheus_exporter: PrometheusExporter = exporter().init();
+    let prometheus_exporter: PrometheusExporter = exporter()
+      .with_default_histogram_boundaries(HISTOGRAM_BOUNDARIES.clone())
+      .init();
+
     let meter: Meter = global::meter(PERSISTENT_GAUGE_NAME);
 
     let persistent_gauge: UpDownCounter<i64> = meter

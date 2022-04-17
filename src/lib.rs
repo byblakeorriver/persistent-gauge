@@ -1,4 +1,6 @@
-use crate::operation::{metric_service, status, track_metrics, Config, Logger, Metric};
+use crate::operation::{
+  metric_service, status, track_metrics, Config, Logger, Metric, TraceIngestLayer, Tracer,
+};
 use axum::routing::{get, post, put};
 use axum::{Router, Server};
 use std::error::Error;
@@ -29,6 +31,7 @@ type DbPool = Pool<ConnectionManager<MysqlConnection>>;
 
 pub async fn start() -> Result<(), Box<dyn Error>> {
   let logger: Logger = Logger::init_logger();
+  let _ = Tracer::init()?;
 
   let _ = slog_scope::set_global_logger(logger.root_logger).cancel_reset();
 
@@ -47,7 +50,8 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
     .route("/api/gauge/decrement/:gauge_name", put(decrement_gauge))
     .route("/api/gauge/create/:gauge_name", post(create_gauge))
     .route_layer(from_fn(track_metrics))
-    .layer(Extension(pool.clone()));
+    .layer(Extension(pool.clone()))
+    .layer(TraceIngestLayer::new());
 
   let addr: SocketAddr = SocketAddr::from(([0, 0, 0, 0], Config::operation_port()));
   info!(
@@ -59,6 +63,9 @@ pub async fn start() -> Result<(), Box<dyn Error>> {
 
   match tokio::try_join!(tokio::spawn(server)) {
     Ok(_) => Ok(()),
-    Err(e) => panic!("The server failed: {:?}", e),
+    Err(e) => {
+      opentelemetry::global::shutdown_tracer_provider();
+      panic!("The server failed: {:?}", e)
+    }
   }
 }

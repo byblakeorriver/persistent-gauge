@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-sleep 20s
+sleep 10s
 
 drill --benchmark /benchmark/benchmark.yaml --stats

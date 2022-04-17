@@ -20,19 +20,12 @@ services:
     depends_on:
       - mariadb
 
-  drill:
-    build:
-      context: .
-      dockerfile: Dockerfile.drill
-    restart: on-failure
-    depends_on:
-      - gauge
-
   gauge:
     build:
       context: .
     environment:
       LOG_LEVEL: "info"
+      TRACING_ENABLED: "true"
     depends_on:
       - mariadb
       - migration
@@ -65,3 +58,27 @@ services:
     restart: unless-stopped
     expose:
       - 9100
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.33
+    restart: unless-stopped
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: ":9411"
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14250:14250"
+      - "14268:14268"
+      - "14269:14269"
+      - "9411:9411"
+
+  drill:
+    build:
+      context: .
+      dockerfile: Dockerfile.drill
+    restart: on-failure
+    depends_on:
+      - gauge
